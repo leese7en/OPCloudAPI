@@ -1,0 +1,141 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>麦杰云APIDEMO操作MTree(已测)</title>
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <script type="text/javascript" src="http://127.0.0.1:8800/socket.io/socket.io.js"></script>
+    <script src="../js/jquery-1.9.1.min.js"></script>
+    <link rel="stylesheet" href="../js/bootstrap-3.3.5/css/bootstrap.css"/>
+    <script src="../js/bootstrap-3.3.5/js/bootstrap.js"></script>
+    <link href="../js/toastr/toastr.min.css" rel="stylesheet"/>
+    <script src="../js/toastr/toastr.min.js"></script>
+    <script type="text/javascript" src="../js/utils.js"></script>
+    <link href="../css/patch.css" rel="stylesheet">
+    <link href="../css/docs.min.css" rel="stylesheet">
+    <script src="../js/ie-emulation-modes-warning.js"></script>
+    <script type="text/javascript" src="../js/syntaxhighlighter/scripts/shCore.js"></script>
+    <script type="text/javascript" src="../js/syntaxhighlighter/scripts/shBrushSql.js"></script>
+    <script type="text/javascript" src="../js/syntaxhighlighter/scripts/shBrushJScript.js"></script>
+    <script type="text/javascript" src="../js/syntaxhighlighter/scripts/shBrushXml.js"></script>
+    <script type="text/javascript" src="../js/syntaxhighlighter/scripts/shBrushCss.js"></script>
+    <link type="text/css" rel="stylesheet" href="../js/syntaxhighlighter/styles/shCoreDefault.css"/>
+    <link rel=stylesheet href="../js/codemirror/doc/docs.css">
+    <link rel="stylesheet" href="../js/codemirror/lib/codemirror.css">
+    <link rel="stylesheet" href="../js/codemirror/theme/eclipse.css">
+    <link rel="stylesheet" href="../js/codemirror/theme/neat.css">
+    <script type="text/javascript" src="../js/codemirror/lib/codemirror.js"></script>
+    <script type="text/javascript" src="../js/codemirror/mode/javascript/javascript.js"></script>
+    <script src="../js/codemirror/addon/edit/matchbrackets.js"></script>
+    <script src="../js/codemirror/addon/comment/continuecomment.js"></script>
+    <script src="../js/codemirror/addon/comment/comment.js"></script>
+    <script type="text/javascript" src="../js/codemirror/mode/sql/sql.js"></script>
+
+</head>
+<body>
+
+<div class="container bs-docs-container">
+    <div class="row">
+        <div class="col-md-9" role="main">
+            <div class="bs-docs-section">
+                <p>查询MTree</p>
+                <textarea id="blurryMTreeParam">{"URI":"NAME","GM":1}</textarea>
+                <p>
+                    <a class="btn btn-lg btn-outline" role="button" onclick="testBlurryTree()">提交</a>
+                <p>添加MTree</p>
+                <textarea id="addMTreeParam">{"NAME":"NAME","DESC":"DESC","PMTree":"/magus/123/321"}</textarea>
+                <p>
+                    <a class="btn btn-lg btn-outline" role="button" onclick="testAddMTree()">提交</a>
+                <p>删除MTree</p>
+                <textarea id="deleteMTreeParam">{"URI":"/magus/123/321/NAME"}</textarea>
+                <p>
+                    <a class="btn btn-lg btn-outline" role="button" onclick="testDeleteMTree()">提交</a>
+            </div>
+            <div>
+                <p>结果:</p>
+                <textarea id="dataView" name="dataView" rows="20" cols="80"></textarea>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    .CodeMirror {
+        border-top: 1px solid black;
+        border-bottom: 1px solid black;
+    }
+</style>
+<script type="application/javascript">
+    var token = 'dzj7P9jP4A/zURxRTK0Pyb13CuMDfZfIZfXIubC4rug8tKg4yCBGhEnHyoWJg8mXrtV7CAh6y5v0l3eyDLSdv1T2paedby6fO55yUSTlLIFDgxXjjZs+Jd5qiSPZAqHDhtbjatHSQfV5cBfDCMMxs9Whtgzbq3Y9KUgYzyf5FN3yXClMgyT8RPo0yuNTmz4M4yFRs0EHc7ND8UajXtL6t9ByyiY2AjRcI4pw4+hrqvM+MhJpqUi8o2krOQX2ZGqH+VM4Sdz+t9pFoMc8/RKn2g==';
+    var socket = io.connect('http://127.0.0.1:8800/api/vo1', {
+        'query': 'token=' + token
+    });
+    var docWidth = document.documentElement.clientWidth - 150;
+    var jsonView = CodeMirror.fromTextArea(document.getElementById("dataView"), {
+        mode: "text/javascript",
+        lineNumbers: true,
+        theme: "eclipse",
+        matchBrackets: true,
+        styleActiveLine: true, //line选择是是否加亮
+        lineWrapping: true, //是否自动换行
+    });
+    $('.CodeMirror').css('width', docWidth + 'px');
+    socket.on('api/blurryMTree', function (data) {
+        var str = JSON.stringify(data);
+        jsonView.setValue(str);
+    });
+    socket.on('api/addMTree', function (data) {
+        var str = JSON.stringify(data);
+        jsonView.setValue(str);
+    });
+    socket.on('api/deleteMTree', function (data) {
+        var str = JSON.stringify(data);
+        jsonView.setValue(str);
+    });
+
+    var viewConfig = {
+        mode: "text/x-json",
+        indentWithTabs: true,
+        smartIndent: true,
+        lineNumbers: true,
+        matchBrackets: true,
+        autofocus: true,
+        theme: "neat",
+        extraKeys: {"Ctrl-Space": "autocomplete"},
+        hintOptions: {
+            tables: {
+                users: {name: null, score: null, birthDate: null},
+                countries: {name: null, population: null, size: null}
+            }
+        }
+    }
+    var blurryMTreeEditor = CodeMirror.fromTextArea(document.getElementById('blurryMTreeParam'), viewConfig);
+    blurryMTreeEditor.setSize(docWidth, 100);    //设置宽高
+    var addMTreeEditor = CodeMirror.fromTextArea(document.getElementById('addMTreeParam'), viewConfig);
+    addMTreeEditor.setSize(docWidth, 100);    //设置宽高
+    var deleteMTreeEditor = CodeMirror.fromTextArea(document.getElementById('deleteMTreeParam'), viewConfig);
+    deleteMTreeEditor.setSize(docWidth, 100);    //设置宽高
+    function testBlurryTree() {
+        var param = blurryMTreeEditor.getValue();
+        if (param != undefined) {
+            param = JSON.parse(param);
+            socket.emit('api/blurryMTree', param);
+        }
+    }
+    function testAddMTree() {
+        var param = addMTreeEditor.getValue();
+        if (param != undefined) {
+            param = JSON.parse(param);
+            socket.emit('api/addMTree', param);
+        }
+    }
+    function testDeleteMTree() {
+        var param = deleteMTreeEditor.getValue();
+        if (param != undefined) {
+            param = JSON.parse(param);
+            socket.emit('api/deleteMTree', param);
+        }
+    }
+
+</script>
+</body>
+</html>

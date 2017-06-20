@@ -1,0 +1,150 @@
+<!doctype html >
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>麦杰云APIDEMO</title>
+    <meta http - equiv="x-ua-compatible" content="ie=edge">
+    <script type="text/javascript" src="http://127.0.0.1:8800/socket.io/socket.io.js"></script>
+    <script src="../js/jquery-1.9.1.min.js"></script>
+    <link rel="stylesheet" href="../js/bootstrap-3.3.5/css/bootstrap.css"/>
+    <script src="../js/bootstrap-3.3.5/js/bootstrap.js"></script>
+    <link href="../js/toastr/toastr.min.css" rel="stylesheet"/>
+    <script src="../js/toastr/toastr.min.js"></script>
+    <script type="text/javascript" src="../js/utils.js"></script>
+    <link href="../css/patch.css" rel="stylesheet">
+    <link href="../css/docs.min.css" rel="stylesheet">
+    <script src="../js/ie-emulation-modes-warning.js"></script>
+    <script type="text/javascript" src="../js/syntaxhighlighter/scripts/shCore.js"></script>
+    <script type="text/javascript" src="../js/syntaxhighlighter/scripts/shBrushSql.js"></script>
+    <script type="text/javascript" src="../js/syntaxhighlighter/scripts/shBrushJScript.js"></script>
+    <script type="text/javascript" src="../js/syntaxhighlighter/scripts/shBrushXml.js"></script>
+    <script type="text/javascript" src="../js/syntaxhighlighter/scripts/shBrushCss.js"></script>
+    <link type="text/css" rel="stylesheet" href="../js/syntaxhighlighter/styles/shCoreDefault.css"/>
+    <link rel=stylesheet href="../js/codemirror/doc/docs.css">
+    <link rel="stylesheet" href="../js/codemirror/lib/codemirror.css">
+    <link rel="stylesheet" href="../js/codemirror/theme/eclipse.css">
+    <link rel="stylesheet" href="../js/codemirror/theme/neat.css">
+    <script type="text/javascript" src="../js/codemirror/lib/codemirror.js"></script>
+    <script type="text/javascript" src="../js/codemirror/mode/javascript/javascript.js"></script>
+    <script src="../js/codemirror/addon/edit/matchbrackets.js"></script>
+    <script src="../js/codemirror/addon/comment/continuecomment.js"></script>
+    <script src="../js/codemirror/addon/comment/comment.js"></script>
+    <script type="text/javascript" src="../js/codemirror/mode/sql/sql.js"></script>
+</head>
+<body>
+
+<div class="container bs-docs-container">
+    <div class="row">
+        <div class="col-md-9" role="main">
+            <div class="bs-docs-section">
+                <h1> SQL示例 </h1>
+                <h4 id="download-cdn1"> 测点查询 </h4>
+                <div class="brush: sql;" id="sql1">
+                    select ID, GN, PN from point where ID > 11000 limit 0, 10
+                </div>
+                <h4 id="download-cdn2"> 节点查询 </h4>
+                <div class="brush: sql;">
+                    select * from node where PN like '%N%'
+                </div>
+                <h4 id="download-cdn3"> 实时数据查询 </h4>
+                <div class="brush: sql;">
+                    select * from realtime limit 0, 100
+                </div>
+                <h4 id="download-cdn4"> 报警数据查询 </h4>
+                <div class="brush: sql;">
+                    select * from alarm where ID > 11000
+                </div>
+                <h4 id="download-cdn5"> 历史数据查询 </h4>
+                <div class="brush: sql;">
+                    select * from archive where TM between "2015-01-03 20:15:10" and "2015-01-05 20:45:10"
+                </div>
+                <h4 id="download-cdn6"> 数据量查询 </h4>
+                <div class="brush: sql;">
+                    select count(ID) as count from realtime
+                </div>
+                <textarea id="sqlText" name="sqlText">select * from node limit 0, 10
+                </textarea>
+                </p>
+                <a class="btn btn-lg btn-outline" role="button" onclick="testSQL()"> 提交 </a></div>
+            <div>
+                <textarea id="dataView" name="dataView" rows="20" cols="120"> </textarea></div>
+        </div>
+    </div>
+</div>
+<style>
+    .CodeMirror {
+        border-top: 1px solid black;
+        border-bottom: 1px solid black;
+    }
+</style>
+<script type="application/javascript">
+    var token = 'v9ZmHhML8I2RkKNPxMKEipG5mFd+rbYvhPPBBNRhemA+dI9BG5OT587t0RMN4vnvJHHCnoI0001dQJGCHcs94P9ICaKFSC26kemIFwlXVO9X0gTQoumL4+N7cPzD4kAYiEeIaYpysMjh5Ci2R+h1qqC0iGzdwqh6X3gazY1fri+sCSDZ6ePT9H+c/fTyWY+5kK4e1SvIhmzsepUz10RonHuB12BS2036kGbBgep7QyGU+PDoKMZjnFbsA03ck0Lr';
+    var socket = io.connect('http://127.0.0.1:8800/api/vo1', {
+        'query': 'token=' + token
+    });
+    function query(sql, callback) {
+        if (sql != undefined && socket != undefined) {
+            socket.emit('api/sql', {sql: sql});
+            socket.on('api/sql', function (data) {
+                    if (callback != null) {
+                        callback(data);
+                    }
+                }
+            )
+        }
+    }
+
+    var docWidth = document.documentElement.clientWidth - 150;
+
+    var sqlConfig = {
+        mode: "text/x-mysql",
+        indentWithTabs: true,
+        smartIndent: true,
+        lineNumbers: true,
+        matchBrackets: true,
+        autofocus: true,
+        theme: "neat",
+        extraKeys: {"Ctrl-Space": "autocomplete"},
+        hintOptions: {
+            tables: {
+                users: {
+                    name: null,
+                    score: null,
+                    birthDate: null
+                },
+                countries: {
+                    name: null,
+                    population: null,
+                    size: null
+                }
+            }
+        }
+    }
+
+    var editor = CodeMirror.fromTextArea(document.getElementById('sqlText'), sqlConfig);
+    editor.setSize(docWidth, 100);
+    //设置宽高
+    var jsonView = CodeMirror.fromTextArea(document.getElementById("dataView"), {
+        mode: "text/javascript",
+        lineNumbers: true,
+        theme: "eclipse",
+        matchBrackets: true,
+        styleActiveLine: true,
+        //line选择是是否加亮
+        lineWrapping: true,
+        //是否自动换行
+    });
+    $('.CodeMirror').css('width', docWidth + 'px');
+    function testSQL() {
+        var sql = editor.getValue();
+        if (sql != undefined) {
+            query(sql, function (data) {
+                    var str = JSON.stringify(data);
+                    jsonView.setValue(str);
+                }
+            )
+        }
+    }
+</script>
+</body>
+</html>
